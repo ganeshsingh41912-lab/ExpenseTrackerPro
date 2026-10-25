@@ -30,8 +30,7 @@ def add_transaction(transaction_type,amount):
     transactions.append({
         "type": transaction_type,
         "amount": amount,
-        "date": 
-        datetime.now().strftime("%d-%m-%y%H:%M")})
+        "date": datetime.now().strftime("%d-%m-%y%H:%M")})
 
 def save_data():
     data = {
@@ -83,33 +82,48 @@ def category_report ():
     for category,total in category_totals.items():
             print(f"{category}:Rs.{total:.2f}")
 
-def monthly_report ():
-    print("\n=====MONTHLY REPORT=====")
-    print("TEST 1 : Function started")
-    print("TEST 2 : Reached next line")
+def monthly_report():
+    print("\n===== MONTHLY REPORT =====")
+
     current_month = datetime.now().strftime("%m-%y")
-    print("DEBUG :Current month =",current_month)
-    print("DEBUG : Reached before loop")
     monthly_income = 0.0
     monthly_expenses = 0.0
+
     for item in transactions:
-        print("DEBUG : Loop running")
-        print("DEBUG : Transactions =",transactions)
-        try:
-            transaction_date = datetime.strptime(item["date"],"%d-%m-%y %H-%M")
-        except (ValueError,KeyError):
+        transaction_date = None
+
+        for date_format in (
+            "%d-%m-%y %H:%M",
+            "%d-%m-%y%H:%M",
+            "%d-%m-%Y %H:%M",
+            "%d-%m-%Y%H:%M"
+        ):
+            try:
+                transaction_date = datetime.strptime(
+                    item["date"], date_format
+                )
+                break
+            except (ValueError, KeyError):
+                continue
+
+        if transaction_date is None:
             continue
-        if transaction_date.strftime("%m-%y")==current_month:
-            amount = float(item.get("amount",0))
-            if item.get("type")=="Income":
+
+        if transaction_date.strftime("%m-%y") == current_month:
+            amount = float(item.get("amount", 0))
+
+            if item.get("type") == "Income":
                 monthly_income += amount
-            elif item.get("type") == "Expenses":
+            elif item.get("type") in ("Expense", "Expenses"):
                 monthly_expenses += amount
-                print(f"Month:{datetime.now().strftime('%B%y')}")
-                print(f"Total Income : Rs.{monthly_income:.2f}")
-                print(f"Total Expenses: Rs.{monthly_expenses:.2f}")
-                print(f"Remaining Balance :"f"Rs. {monthly_income - monthly_expenses:.2f}")
-                print("DEBUG : Monthly report finished")
+
+    print(f"Month: {datetime.now().strftime('%B %Y')}")
+    print(f"Total Income: Rs. {monthly_income:.2f}")
+    print(f"Total Expenses: Rs. {monthly_expenses:.2f}")
+    print(
+        f"Remaining Balance: Rs. "
+        f"{monthly_income - monthly_expenses:.2f}"
+    )
 
 load_data()
 
